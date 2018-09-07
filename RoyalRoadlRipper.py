@@ -1,5 +1,6 @@
 from ebooklib import epub
 from urllib import request
+from fake_useragent import UserAgent
 import http.client 
 import re
 http.client._MAXHEADERS = 1000
@@ -8,7 +9,10 @@ http.client._MAXHEADERS = 1000
 #link = "https://royalroadl.com/fiction/8894/everybody-loves-large-chests/chapter/99919/prologue"
 #link = "https://royalroadl.com/fiction/5701/savage-divinity/chapter/58095/chapter-1-new-beginnings"
 link = input("Give webside of the first chapter: ")
-webpage = request.urlopen(link).read().decode('utf-8')
+ua = UserAgent()
+req = request.Request(link)
+req.add_header('User-Agent', ua.chrome)
+webpage = request.urlopen(req).read().decode('utf-8')
 webpage = re.sub(u'[^\u0020-\uD7FF\u0009\u000A\u000D\uE000-\uFFFD\U00010000-\U0010FFFF]+', '', webpage)
 webpage = re.sub(' +',' ',webpage)
 titleIndex = webpage.find("keywords")
@@ -49,7 +53,9 @@ style_url_begin = webpage.find("href", webpage.find("stylesheet"))+6
 style_url_begin = webpage.find("href", webpage.find("stylesheet",style_url_begin+5))+6
 style_url_end = webpage.find(">",style_url_begin)-2
 style_url = "https://royalroadl.com" + webpage[style_url_begin:style_url_end]
-style = request.urlopen(style_url).read().decode()
+req = request.Request(style_url)
+req.add_header('User-Agent', ua.chrome)
+style = request.urlopen(req).read().decode()
 nav_css = epub.EpubItem(uid="style_nav", file_name="style/nav.css", media_type="text/css", content=style)
 
 # add CSS file
@@ -103,7 +109,9 @@ while True:
 	endNextChLink = webpage.find(">Next",beginNextChLink)-1
 	NextChLink = "https://royalroadl.com" + webpage[beginNextChLink:endNextChLink]
 	# Load next chapter webpage
-	webpage = request.urlopen(NextChLink).read().decode('utf-8')
+	req = request.Request(NextChLink)
+	req.add_header('User-Agent', ua.chrome)
+	webpage = request.urlopen(req).read().decode('utf-8')
 	
 
 # add default NCX and Nav file
